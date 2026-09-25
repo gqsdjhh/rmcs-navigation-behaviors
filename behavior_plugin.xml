@@ -1,0 +1,5 @@
+<library path="rmcs-navigation-behaviors">
+  <class type="rmcs::navigation::behaviors::ExampleBehavior" base_class_type="nav2_core::Behavior">
+    <description>Example no-op behavior plugin, reuses nav2_msgs::action::Wait</description>
+  </class>
+</library>
