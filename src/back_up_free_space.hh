@@ -26,7 +26,7 @@ public:
     auto onConfigure() -> void override;
     auto onCleanup() -> void override;
 
-    auto onRun(const std::shared_ptr<const Action::Goal> command)
+    auto onRun(std::shared_ptr<const Action::Goal> command)
         -> nav2_behaviors::ResultStatus override;
     auto onCycleUpdate() -> nav2_behaviors::ResultStatus override;
 
@@ -39,7 +39,7 @@ private:
 
     auto requestCostmap() -> void;
     auto snapshotCostmap() -> std::shared_ptr<const Costmap>;
-    auto queryCostAt(const Costmap & costmap, double x, double y) const -> int;
+    static auto queryCostAt(const Costmap & costmap, double x, double y) -> int;
     auto sampleDirectionCosts(const Costmap & costmap, double x, double y, double direction) const
         -> std::vector<float>;
     auto countLeadingObstacles(const std::vector<float> & costs) const -> int;
@@ -54,7 +54,6 @@ private:
     double sample_radius_{3.0};
     int sample_directions_{18};
     double obstacle_threshold_{150.0};
-    double stop_cost_{150.0};
     double refresh_interval_{0.5};
     bool visualize_{false};
 

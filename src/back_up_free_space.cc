@@ -28,8 +28,6 @@ auto BackUpFreeSpace::onConfigure() -> void {
     nav2_util::declare_parameter_if_not_declared(
         node, prefix + "obstacle_threshold", rclcpp::ParameterValue{150.0});
     nav2_util::declare_parameter_if_not_declared(
-        node, prefix + "stop_cost", rclcpp::ParameterValue{150.0});
-    nav2_util::declare_parameter_if_not_declared(
         node, prefix + "refresh_interval", rclcpp::ParameterValue{0.5});
     nav2_util::declare_parameter_if_not_declared(
         node, prefix + "visualize", rclcpp::ParameterValue{false});
@@ -38,7 +36,6 @@ auto BackUpFreeSpace::onConfigure() -> void {
     node->get_parameter(prefix + "sample_radius", sample_radius_);
     node->get_parameter(prefix + "sample_directions", sample_directions_);
     node->get_parameter(prefix + "obstacle_threshold", obstacle_threshold_);
-    node->get_parameter(prefix + "stop_cost", stop_cost_);
     node->get_parameter(prefix + "refresh_interval", refresh_interval_);
     node->get_parameter(prefix + "visualize", visualize_);
 
@@ -143,8 +140,7 @@ auto BackUpFreeSpace::onCycleUpdate() -> nav2_behaviors::ResultStatus {
     feedback_->distance_traveled = static_cast<float>(distance);
     action_server_->publish_feedback(feedback_);
 
-    const auto cell_cost = queryCostAt(*costmap, x, y);
-    if (distance >= std::fabs(command_x_) || (cell_cost >= 0 && cell_cost <= stop_cost_)) {
+    if (distance >= std::fabs(command_x_)) {
         stopRobot();
         return {nav2_behaviors::Status::SUCCEEDED, Action::Result::NONE};
     }
@@ -191,9 +187,10 @@ auto BackUpFreeSpace::requestCostmap() -> void {
     auto request = std::make_shared<nav2_msgs::srv::GetCostmap::Request>();
 
     costmap_client_->async_send_request(
-        request, [this](ServiceResponseFuture future) {
+        request,
+        [this](const ServiceResponseFuture future) {
             try {
-                auto response = future.get();
+                const auto & response = future.get();
                 auto costmap = std::make_shared<Costmap>(std::move(response->map));
 
                 std::lock_guard<std::mutex> lock{costmap_mutex_};
@@ -216,7 +213,7 @@ auto BackUpFreeSpace::snapshotCostmap() -> std::shared_ptr<const Costmap> {
     return latest_costmap_;
 }
 
-auto BackUpFreeSpace::queryCostAt(const Costmap & costmap, double x, double y) const -> int {
+auto BackUpFreeSpace::queryCostAt(const Costmap & costmap, double x, double y) -> int {
     const auto & meta = costmap.metadata;
     if (meta.resolution <= 0.0F || meta.size_x == 0 || meta.size_y == 0) {
         return 256;
@@ -250,7 +247,7 @@ auto BackUpFreeSpace::sampleDirectionCosts(
     costs.reserve(static_cast<size_t>(step_count));
 
     for (int step = 1; step <= step_count; ++step) {
-        const auto distance = step * resolution;
+        const auto distance = static_cast<double>(step) * resolution;
         const auto sample_x = x + distance * std::cos(direction);
         const auto sample_y = y + distance * std::sin(direction);
         const auto cost = queryCostAt(costmap, sample_x, sample_y);
