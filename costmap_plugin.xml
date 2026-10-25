@@ -1,0 +1,5 @@
+<library path="rmcs-navigation-behaviors">
+  <class type="rmcs::navigation::behaviors::LocalMapIgnoreLayer" base_class_type="nav2_costmap_2d::Layer">
+    <description>Ignore /local_map in the local costmap while the ignore flag is latched true</description>
+  </class>
+</library>

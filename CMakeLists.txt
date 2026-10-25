@@ -15,10 +15,12 @@ endif()
 find_package(geometry_msgs REQUIRED)
 find_package(nav2_behaviors REQUIRED)
 find_package(nav2_core REQUIRED)
+find_package(nav2_costmap_2d REQUIRED)
 find_package(nav2_msgs REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
@@ -33,6 +35,7 @@ target_sources(
     ${PROJECT_NAME}
     PRIVATE
         src/back_up_free_space.cc
+        src/local_map_ignore_layer.cc
 )
 target_include_directories(
     ${PROJECT_NAME}
@@ -41,8 +44,10 @@ target_include_directories(
         ${geometry_msgs_INCLUDE_DIRS}
         ${nav2_behaviors_INCLUDE_DIRS}
         ${nav2_core_INCLUDE_DIRS}
+        ${nav2_costmap_2d_INCLUDE_DIRS}
         ${nav2_msgs_INCLUDE_DIRS}
         ${nav2_util_INCLUDE_DIRS}
+        ${std_msgs_INCLUDE_DIRS}
         ${tf2_INCLUDE_DIRS}
         ${tf2_geometry_msgs_INCLUDE_DIRS}
         ${visualization_msgs_INCLUDE_DIRS}
@@ -51,8 +56,10 @@ target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE
         ${nav2_behaviors_LIBRARIES}
+        ${nav2_costmap_2d_LIBRARIES}
         ${nav2_util_LIBRARIES}
         ${pluginlib_LIBRARIES}
+        ${std_msgs_LIBRARIES}
         ${tf2_LIBRARIES}
         ${tf2_geometry_msgs_LIBRARIES}
         ${visualization_msgs_LIBRARIES}
@@ -60,6 +67,9 @@ target_link_libraries(
 
 pluginlib_export_plugin_description_file(
     nav2_core behavior_plugin.xml
+)
+pluginlib_export_plugin_description_file(
+    nav2_costmap_2d costmap_plugin.xml
 )
 
 install(
